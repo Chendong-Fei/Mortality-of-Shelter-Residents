@@ -1,0 +1,19 @@
+LLM: ChatGPT-4o
+Date:24 September 2024
+
+User
+Show in New Window
+Error: unexpected symbol in:
+"raw_data_no_id <- raw_data %>%
+  select(-_id"
+ChatGPT
+
+User
+
+according to the bernulli distribution, simulate the next 20 years based on this dataset
+
+ChatGPT
+To simulate the next 20 years using a Bernoulli distribution for specific columns, we would focus on binary events (success/failure) or the presence/absence of specific outcomes. For the dataset at hand, using a Bernoulli distribution might apply best for predicting the occurrence of deaths in categories like male, female, or transgender/non-binary/Two-Spirit decedents. This approach can help simulate whether a death occurs in these categories.
+
+Below is an R code to simulate the next 20 years based on a Bernoulli distribution for categories like whether or not deaths occur in each demographic group, along with some modifications for total deaths and average ages.
+
