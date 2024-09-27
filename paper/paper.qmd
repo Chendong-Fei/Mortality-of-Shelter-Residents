@@ -1,0 +1,261 @@
+---
+title: "Demographic and Temporal Analysis of Mortality Among Shelter Residents in Toronto"
+subtitle: "Insights on Age,Gender of Shelter Residents"
+author: 
+  - Chendong Fei
+thanks: "Code and data are available at: https://github.com/Chendong-Fei/Shelter-Residents.git"
+date: today
+date-format: long
+abstract: "This paper examines the City of Toronto's efforts to monitor the deaths of people experiencing homelessness, initiated to address public health disparities. Using data collected from shelters, community organizations, and the Office of the Chief Coroner, the study explores the socio-economic, environmental, and health-related factors contributing to mortality among this vulnerable population. The findings highlight critical gaps in healthcare access and housing support, with policy implications aimed at reducing homelessness-related mortality and improving intervention strategies."
+format: pdf
+number-sections: true
+bibliography: references.bib
+
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(opendatatoronto)
+library(ggplot2)
+library(dplyr)
+library(tinytex)
+library(lubridate)
+library(kableExtra)
+library(gridExtra)
+```
+
+# Introduction
+
+Homelessness poses significant public health challenges, with individuals experiencing homelessness facing disproportionately higher risks of premature death due to factors such as limited access to healthcare, chronic conditions, and unsafe living environments. In Toronto, the city has undertaken efforts to monitor deaths within this vulnerable population to better understand the causes and inform policy decisions. Despite various social services and healthcare initiatives, mortality among homeless individuals continues to rise, particularly among men, revealing significant gaps in prevention and intervention strategies.
+
+This study analyzes mortality data on homeless individuals collected by the City of Toronto, examining trends in the total number of deaths, gender differences, and age-related vulnerabilities. While previous research has focused on the broader impacts of homelessness, there is a lack of detailed analysis on the specific patterns of mortality within this population. Our research addresses this gap by identifying key trends and factors contributing to the increased number of deaths over recent years.
+
+We found that despite various public health efforts, mortality rates among homeless individuals have steadily increased, with male decedents constituting the majority. These findings suggest a need for improved healthcare access and more robust housing interventions to reduce preventable deaths.
+
+# Data {#sec-data}
+
+## Overview of the dataset
+
+The dataset used for this analysis was sourced @opendatatoronto and conducted using @citeR. It contains annual data on the mortality of homeless individuals in Toronto, covering the period from 2007 to 2023. It includes key variables such as the total number of deaths, the average age of deceased individuals, and gender-specific breakdowns. 
+\newpage
+
+```{r}
+#| label: tbl-Table1
+#| tbl-cap: Variable In The Data - Detah Among Shelter Residents (2007-2024)
+#| echo: false
+
+# Read the CSV file
+raw_data <- read.csv("raw_data.csv")
+
+# Correct number of column names
+kable(raw_data, 
+      col.names = c("_id", "Year", "Total Decedents", 
+                    "Avg Age of Death (All)", "Male Decedents", 
+                    "Avg Age of Death (Male)", "Female Decedents", 
+                    "Avg Age of Death (Female)", 
+                    "Trans/NB/2S Decedents", 
+                    "Avg Age of Death (Trans/NB/2S)"))
+
+```
+
+## Data Selection 
+
+While Toronto's broader health and census datasets offer extensive insight into various socio-economic and public health factors, the dataset monitoring the deaths of homeless people in Toronto was chosen due to its specific focus on a vulnerable population and its relevance to public health and social services policy. The general health datasets contain important information, but the dataset on homeless deaths provides direct information on mortality patterns within this demographic, offering a more targeted view of issues affecting homeless individuals.
+
+The primary reason for selecting this dataset is that it presents detailed, time-sensitive data on a population that is often underrepresented in other public health statistics. This dataset includes information on the number of deaths and demographic characteristics, allowing for in-depth analysis of how homelessness contributes to mortality rates. Additionally, it captures trends over time, making it easier to assess the impact of interventions or changing socio-economic conditions on the homeless population.
+
+The key variables in the analysis are:
+
+Number of Deaths: The total number of deaths of homeless individuals reported within a specific time frame.
+
+Demographic Information: Age, gender, and other relevant demographic details to understand which subgroups within the homeless population are most vulnerable.
+
+Time Trends: Data collected over several years, allowing for the analysis of trends and the evaluation of policy or environmental changes that may have influenced mortality rates.
+
+These variables enable an analysis of the public health issues affecting homeless people in Toronto, providing a foundation for developing targeted interventions and evaluating their effectiveness over time.
+
+## Data Cleaning
+
+To clean the raw data, key variables were selected,@janitor including 'Year', 'Total decedents', and 'Average age of death'. Column names were standardized into a consistent snake_case format for better readability. Critical columns, such as 'total_decedents' and 'avg_age_all_decedents', were checked for missing values (NAs), and rows with missing values in these columns were removed to maintain data integrity. For non-essential columns, like 'other_decedents' and 'avg_age_other_decedents', NA values were retained, as they were less crucial to the core analysis. Gender categories, such as 'Transgender/Non-binary/Two-Spirit', were maintained, but could be simplified if necessary. The dataset was already in chronological order by year, ensuring clear time-trend analysis. This clean dataset, free from critical NAs and standardized for ease of use, is now ready for further analysis, focusing on mortality patterns and demographic insights over time.
+
+\newpage
+```{r}
+#| label: tbl-Table2
+#| tbl-cap: Cleaned date of deaths of Shelter Residents (2007-2024)
+#| echo: false
+
+# Load necessary libraries
+library(readr)
+library(knitr)
+
+# Read the CSV file
+new_data <- read_csv("Analysis_data.csv", show_col_types = FALSE)
+
+# Convert Avg_Age_Female_Decedents column to numeric, handling non-numeric values
+new_data$Avg_Age_Female_Decedents <- as.numeric(new_data$Avg_Age_Female_Decedents)
+
+# Display the table with column names
+kable(new_data, 
+      col.names = c("Year", "Total Decedents", 
+                    "Avg Age of Death (All)", "Male Decedents", 
+                    "Avg Age of Death (Male)", "Female Decedents", 
+                    "Avg Age of Death (Female)"))
+
+
+```
+
+
+# Result
+
+
+## Yearly Trends of Different Gender Decedents 
+
+```{r}
+#| label: fig-1
+#| fig-cap: Male and Female Decedents Over Time
+#| echo: false
+#| warning: false
+#| message: false
+
+# Load the CSV data
+data <- read_csv("Analysis_data.csv", show_col_types = FALSE)
+
+# Load necessary libraries
+library(ggplot2)
+library(readr)
+
+# Create a bar plot for Male and Female Decedents over time
+ggplot(data, aes(x = factor(Year))) +
+  geom_bar(aes(y = Male_Decedents, fill = "Male Decedents"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = Female_Decedents, fill = "Female Decedents"), stat = "identity", position = "dodge") +
+  labs(title = "Male and Female Decedents Over Time", 
+       x = "Year", 
+       y = "Number of Decedents") +
+  scale_fill_manual(values = c("cyan", "orange"), name = "Decedents") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10), # Rotate and adjust the x-axis labels
+    axis.title.x = element_text(margin = margin(t = 10))           # Add space between x-axis title and labels
+  )
+```
+@fig-1 This graph illustrates the trend in male and female decedents over the years. The cyan bars consistently indicate a higher number of male decedents compared to female, shown in orange, across most years. This visualization allows for a quick comparison of gender distribution among decedents over time, making it easy to spot years where either male or female decedent counts were significantly higher or lower.
+
+\newpage
+
+## Yearly Trends in Decedents
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-2
+#| fig-cap: Trends in Decedents Over Time
+
+
+# Load necessary libraries
+library(ggplot2)
+
+# Assuming the dataset is loaded into a data frame called 'correct_data'
+# Replace this with the correct loading code based on your data file path
+correct_data <- read.csv("Analysis_data.csv")
+
+# Create the line plot using ggplot
+ggplot(correct_data, aes(x = Year)) +
+  geom_line(aes(y = Total_Decedents, color = "Total Decedents"), size = 1) +
+  geom_line(aes(y = Male_Decedents, color = "Male Decedents"), size = 1, linetype = "dashed") +
+  geom_line(aes(y = Female_Decedents, color = "Female Decedents"), size = 1, linetype = "dotted") +
+  
+  # Add points to the lines
+  geom_point(aes(y = Total_Decedents, color = "Total Decedents"), size = 2) +
+  geom_point(aes(y = Male_Decedents, color = "Male Decedents"), size = 2) +
+  geom_point(aes(y = Female_Decedents, color = "Female Decedents"), size = 2) +
+  
+  # Titles and labels
+  ggtitle("Trends in Decedents Over Time") +
+  xlab("Year") +
+  ylab("Number of Decedents") +
+  
+  # Customize colors
+  scale_color_manual(values = c("Total Decedents" = "blue", 
+                                "Male Decedents" = "green", 
+                                "Female Decedents" = "red")) +
+  
+  # Add a legend
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+```
+@fig-2 shows a clear upward trajectory in the total number of homeless individuals dying each year. The increase is especially pronounced for male decedents, whose numbers consistently exceed female decedents throughout the time period. There is a significant fluctuation in the number of deaths at a certain time point, which will be explained in detail later.
+\newpage
+
+## Correlation Between Male and Female Decedents
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-3
+#| fig-cap: Distribution of Age of Decedents by Gender
+
+
+# Convert the age columns to numeric if they aren't already
+correct_data$Avg_Age_Male_Decedents <- as.numeric(correct_data$Avg_Age_Male_Decedents)
+correct_data$Avg_Age_Female_Decedents <- as.numeric(correct_data$Avg_Age_Female_Decedents)
+
+# Create the box plot comparing the distribution of ages by gender
+ggplot(correct_data) +
+  geom_boxplot(aes(x = "Male Decedents", y = Avg_Age_Male_Decedents, fill = "Male Decedents")) +
+  geom_boxplot(aes(x = "Female Decedents", y = Avg_Age_Female_Decedents, fill = "Female Decedents")) +
+  
+  # Add titles and labels
+  ggtitle("Distribution of Age of Decedents by Gender") +
+  xlab("Gender") +
+  ylab("Average Age of Decedents") +
+  
+  # Customize fill colors for each gender
+  scale_fill_manual(values = c("Male Decedents" = "blue", "Female Decedents" = "red")) +
+  
+  # Theme for better readability
+  theme_minimal() +
+  theme(legend.position = "none",  # Remove legend, labels are enough
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+        axis.title.x = element_text(face = "bold", size = 12),
+        axis.title.y = element_text(face = "bold", size = 12))
+
+```
+@fig-3 compares the distribution of the average age of decedents by gender. The average age of male decedents (in blue) shows more variability, with a wider range of ages compared to female decedents (in red), who display a more consistent age distribution. The median age for male decedents appears slightly higher than that of female decedents, suggesting that, on average, men tend to be older at the time of death than women.
+
+
+# Discussion
+
+## Results and Implications {#sec-first-point}
+
+The trends observed in @fig-2 reflect a critical rise in shelter resident deaths, especially from 2019 to 2021. This increase is likely associated with the COVID-19 pandemic, which exacerbated existing vulnerabilities among homeless populations. However, the spike cannot be solely attributed to the pandemic, as structural factors such as lack of access to medical care, mental health services, and chronic overcrowding in shelters play significant roles.
+
+The steady rise in male decedents compared to females suggests a need for gender-specific interventions. Males in shelter environments may experience higher exposure to mental health crises, substance use, and violence. This trend emphasizes the importance of expanding access to mental health support, addiction services, and preventive healthcare specifically for men in shelters. Furthermore, female decedents displayed a broader age distribution, indicating that women’s health may deteriorate over a longer span, particularly through chronic conditions that are either untreated or exacerbated in shelter settings. Tailored healthcare, focusing on chronic disease management, could help mitigate these long-term risks for women.
+
+Otherwise, the data indicates that shelter conditions play a crucial role in mortality rates. Factors such as overcrowding, poor sanitation, and inadequate healthcare can exacerbate health risks, leading to avoidable deaths. The observed increase in total deaths from 2019 to 2021 highlights the urgent need for shelter infrastructure and capacity improvements to address these fundamental health concerns.
+
+These findings point to broader issues within both public health and social service systems. While shelters are often viewed as temporary solutions, many residents end up staying long-term. This shift necessitates reimagining shelters not just as short-term housing, but as integral components of a larger healthcare and social support network. Failure to adapt to this reality leaves residents susceptible to preventable health issues, as reflected in the rising mortality rates.
+
+In conclusion, the growing mortality rates, especially among male residents, call for a multifaceted approach. This should include enhancing shelter living conditions, improving healthcare access, and providing targeted support based on gender-specific needs. To reduce death rates among shelter residents, comprehensive reforms addressing both immediate health crises and underlying social determinants of health are essential. These results underscore the critical need for coordinated reforms in health, housing, and social policies to safeguard the homeless population.
+
+## Public Health and Social Implications
+
+The upward trend in decedent numbers, especially among male shelter residents, raises significant public health concerns. Shelters, often overcrowded and understaffed, may not be equipped to address the healthcare needs of their residents, many of whom suffer from chronic conditions, mental health disorders, or substance use issues. The public health system is strained further when shelters become the frontline for healthcare for some of the city's most vulnerable populations.
+
+The stark gender disparity highlights the need for targeted public health interventions, particularly for male shelter residents. Expanding access to mental health and substance abuse treatment could significantly reduce preventable deaths. Additionally, social implications include the need for stable housing solutions, as homelessness itself is a key determinant of health. Long-term housing strategies, combined with accessible healthcare services, are essential for reducing mortality among shelter residents. 
+
+## Weaknesses and Future Research 
+The imitations of dataset are obvious, and that should be addressed in future research. First, the absence of detailed cause-of-death data restricts the ability to develop specific intervention strategies. Understanding the exact health challenges faced by shelter residents, such as chronic illnesses or acute health crises,would allow for more targeted healthcare responses. Future research should focus on gathering more comprehensive health data, including information on the duration of shelter stays, underlying medical conditions, and the specific causes of death.
+
+@hwang2009mortality
+Additionally, the data does not account for differences in shelter environments, such as varying levels of healthcare access, staffing, or crowding, which may influence mortality rates. Exploring these factors could provide deeper insights into how to improve shelter conditions and healthcare delivery. Furthermore, evaluating the long-term impacts of recent social and health policies aimed at supporting the homeless population will be crucial in assessing the effectiveness of current approaches.
+
+Lastly, the intersection between mental health and homelessness requires further exploration. Future studies should focus on assessing the mental health status of shelter residents, the prevalence of substance use, and the availability of services aimed at addressing these issues. Expanding this research could help develop more holistic care strategies that reduce mortality and improve the overall well-being of shelter residents.@InstituteofMedicine
+
+\newpage
+
+
+# References
