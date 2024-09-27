@@ -1,0 +1,44 @@
+---
+title: "simulated_data"
+format: pdf
+editor: visual
+---
+
+```{r}
+# Load necessary library
+library(dplyr)
+
+# Simulated decedents using Poisson distribution
+set.seed(123)
+
+# Input data (replace with actual data)
+total_decedents <- c(24, 26, 16, 21, 21)  # replace with actual data
+male_decedents <- c(22, 19, 14, 11, 15)   # replace with actual data
+female_decedents <- c(2, 7, 2, 10, 6)     # replace with actual data
+
+# Averages
+avg_total_decedents <- mean(total_decedents)
+avg_male_decedents <- mean(male_decedents)
+avg_female_decedents <- mean(female_decedents)
+
+# Simulate next 20 years using Poisson distribution
+years <- 2025:2044
+simulated_total_decedents <- rpois(20, lambda = avg_total_decedents)
+simulated_male_decedents <- rpois(20, lambda = avg_male_decedents)
+
+simulated_female_decedents <- rpois(20, lambda = avg_female_decedents)
+
+# Create a data frame with the results
+simulated_data <- data.frame(
+  Year = years,
+  Simulated_Total_Decedents = simulated_total_decedents,
+  Simulated_Male_Decedents = simulated_male_decedents,
+  Simulated_Female_Decedents = simulated_female_decedents
+)
+
+# Display the simulated data
+print(simulated_data)
+
+write.csv(simulated_data, "C:\\users\\Chendong\\Desktop\\Simulated_data.csv", row.names = FALSE)
+
+```

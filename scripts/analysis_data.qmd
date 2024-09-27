@@ -1,0 +1,36 @@
+---
+title: "analysis_data"
+format: pdf
+editor: visual
+---
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(readr)
+
+# Load raw data
+raw_data <- read_csv("C:\\Users\\Chendong\\Desktop\\raw_data.csv")
+
+# Clean the raw data and transform it into analysis data
+analysis_data <- raw_data %>%
+  # Drop unwanted columns (adjust based on your data)
+  select(-c(`_id`, `Transgender/Non-binary/Two-Spirit decedents`, 
+            `Avg age of death, transgender/non-binary/two-spirit decedents`)) %>%
+  # Handle missing values
+  mutate(`Average age of death, female decedents` = ifelse(is.na(`Average age of death, female decedents`),
+                                                           mean(`Average age of death, female decedents`, na.rm = TRUE),
+                                                           `Average age of death, female decedents`)) %>%
+  # Convert columns to appropriate types
+  mutate(Year = as.integer(Year),
+         `Total decedents` = as.integer(`Total decedents`),
+         `Male decedents` = as.integer(`Male decedents`),
+         `Female decedents` = as.integer(`Female decedents`))
+
+# Display the cleaned data
+print(analysis_data)
+
+
+# Save the cleaned data
+write.csv(analysis_data, "C:\\users\\Chendong\\Desktop\\analysis_data.csv", row.names = FALSE)
+```
