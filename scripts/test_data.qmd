@@ -1,0 +1,65 @@
+---
+title: "test_data"
+format: html
+editor: visual
+---
+
+
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+
+# Read in the dataset
+data <- read_csv("C:\\Users\\Chendong\\Desktop\\Analysis_data.csv")
+
+
+
+# Coerce 'Avg_Age_Female_Decedents' column to numeric and remove non-numeric characters
+data$Avg_Age_Female_Decedents <- as.numeric(gsub("[^0-9.]", "", data$Avg_Age_Female_Decedents))
+
+# Check the structure of the dataset after conversion
+str(data)
+
+# Check if any NA values were introduced by the coercion
+sum(is.na(data$Avg_Age_Female_Decedents))
+
+# Test for negative values in relevant numeric columns
+test_negative_values <- list(
+  Total_Decedents = min(data$Total_Decedents, na.rm = TRUE) >= 0,
+  Avg_Age_All_Decedents = min(data$Avg_Age_All_Decedents, na.rm = TRUE) >= 0,
+  Male_Decedents = min(data$Male_Decedents, na.rm = TRUE) >= 0,
+  Avg_Age_Male_Decedents = min(data$Avg_Age_Male_Decedents, na.rm = TRUE) >= 0,
+  Female_Decedents = min(data$Female_Decedents, na.rm = TRUE) >= 0,
+  Avg_Age_Female_Decedents = min(data$Avg_Age_Female_Decedents, na.rm = TRUE) >= 0
+)
+
+# Display test results for negative values
+test_negative_values
+
+# Test for missing (NA) values in critical columns
+test_na_values <- list(
+  Year_na = all(!is.na(data$Year)),
+  Total_Decedents_na = all(!is.na(data$Total_Decedents)),
+  Avg_Age_All_Decedents_na = all(!is.na(data$Avg_Age_All_Decedents)),
+  Male_Decedents_na = all(!is.na(data$Male_Decedents)),
+  Female_Decedents_na = all(!is.na(data$Female_Decedents)),
+  Avg_Age_Female_Decedents_na = all(!is.na(data$Avg_Age_Female_Decedents))
+)
+
+# Display test results for missing values
+test_na_values
+
+# Test for valid age ranges (ages between 0 and 120)
+test_valid_age <- list(
+  Avg_Age_All_Decedents = all(data$Avg_Age_All_Decedents >= 0 & data$Avg_Age_All_Decedents <= 120, na.rm = TRUE),
+  Avg_Age_Male_Decedents = all(data$Avg_Age_Male_Decedents >= 0 & data$Avg_Age_Male_Decedents <= 120, na.rm = TRUE),
+  Avg_Age_Female_Decedents = all(data$Avg_Age_Female_Decedents >= 0 & data$Avg_Age_Female_Decedents <= 120, na.rm = TRUE)
+)
+
+# Display the result of the valid age range test
+test_valid_age
+
+
+```
+
